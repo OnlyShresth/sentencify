@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Font Awesome Icons - FIXED CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --primary: #ff7675;
@@ -57,6 +57,23 @@
       transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
       position: relative;
+    }
+    
+    /* Made by Shresth footer */
+    .footer-credit {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Roboto', sans-serif;
+      z-index: 1000;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      transition: color 0.3s ease;
+    }
+    
+    .footer-credit:hover {
+      color: var(--primary);
     }
     
     .particle-container {
@@ -580,6 +597,11 @@
         padding: 1.3em 1em 1.3em 1em;
         max-width: 100%;
       }
+      .footer-credit {
+        font-size: 10px;
+        bottom: 5px;
+        right: 5px;
+      }
     }
     
     .grid-float {
@@ -621,7 +643,7 @@
   
   <header>
     <div class="logo">
-      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <i class="fas fa-magic"></i>
       Sentencify
     </div>
     <nav>
@@ -660,7 +682,7 @@
       <div class="actions">
         <button class="btn-convert">
           <div class="loading-spinner" id="loadingSpinner"></div>
-          <i class="fa-solid fa-magic-wand-sparkles"></i> Transform
+          <i class="fas fa-wand-magic-sparkles"></i> Transform
         </button>
       </div>
       
@@ -670,6 +692,9 @@
       </div>
     </div>
   </main>
+
+  <!-- Made by Shresth footer -->
+  <div class="footer-credit">Made by Shresth</div>
 
   <script src="https://js.puter.com/v2/" async onload="initializePuter()"></script>
   
@@ -844,7 +869,7 @@
       });
     }
     
-    // 🚀 ENHANCED AI PROMPTS - Much more specific and accurate!
+    // Enhanced AI prompts
     const aiPrompts = {
       tsundere: {
         1: `Rewrite EXACTLY this sentence but add subtle tsundere elements. Keep the SAME MEANING but add mild embarrassment and one emoticon like >.<. DO NOT change the topic or create a new response. Transform the sentence: `,
