@@ -9,7 +9,7 @@
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
-    /* Base Styles - Tsundere Default */
+    /* Same CSS as before - keeping it unchanged */
     :root {
       --primary: #ff7675;
       --background: #fff0f3;
@@ -60,7 +60,6 @@
       position: relative;
     }
     
-    /* Particle Systems */
     .particle-container {
       position: fixed;
       top: 0;
@@ -291,6 +290,26 @@
     @keyframes fadeInDown {
       0% { transform: translateY(-30px); opacity: 0; }
       100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    .login-btn {
+      padding: 1em 2em;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 1em;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1em;
+      margin-bottom: 1em;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .login-btn:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
     }
     
     .status-indicator {
@@ -619,8 +638,10 @@
     <div class="card">
       <h2>Turn Any Sentence Into Anime Style!</h2>
       
+      <button class="login-btn" id="loginBtn">🔐 Login for AI Transformations</button>
+      
       <div class="status-indicator status-loading" id="statusIndicator">
-        <i class="fas fa-spinner fa-spin"></i> Initializing AI...
+        <i class="fas fa-spinner fa-spin"></i> Initializing...
       </div>
       
       <div class="intensity-control">
@@ -653,8 +674,8 @@
     </div>
   </main>
 
-  <!-- PuterJS - Using event-driven approach -->
-  <script src="https://js.puter.com/v2/" async onload="initializePuter()" onerror="handlePuterError()"></script>
+  <!-- PuterJS -->
+  <script src="https://js.puter.com/v2/" async onload="initializePuter()"></script>
   
   <script>
     // Global variables
@@ -669,6 +690,7 @@
     let puterReady = false;
     
     const statusIndicator = document.getElementById('statusIndicator');
+    const loginBtn = document.getElementById('loginBtn');
     
     function updateStatus(status, message) {
       if (!statusIndicator) return;
@@ -681,110 +703,111 @@
       };
       
       const messages = {
-        ai: message || 'AI-Powered Transformations Ready',
-        local: message || 'Enhanced Local Mode Active',
-        loading: message || 'Initializing AI...'
+        ai: message || 'AI Ready & Authenticated',
+        local: message || 'Enhanced Local Mode',
+        loading: message || 'Initializing...'
       };
       
       statusIndicator.innerHTML = icons[status] + ' ' + messages[status];
     }
     
-    // PuterJS Initialization Handler (called when script loads)
+    // PuterJS Initialization
     function initializePuter() {
-      console.log('🤖 PuterJS script loaded, checking for API...');
+      console.log('🤖 PuterJS loaded');
       
-      // Wait for puter object to be available with proper delay
       let checkCount = 0;
-      const maxChecks = 20; // 20 seconds total
-      
       const puterCheck = setInterval(() => {
         checkCount++;
-        console.log(`🔍 Checking PuterJS availability... (${checkCount}/${maxChecks})`);
         
-        if (typeof window.puter !== 'undefined' && window.puter && window.puter.ai && window.puter.ai.chat) {
+        if (typeof window.puter !== 'undefined' && window.puter && window.puter.ai) {
           clearInterval(puterCheck);
-          console.log('✅ PuterJS AI API is ready!');
+          console.log('✅ PuterJS ready!');
           
           puterReady = true;
           useAI = true;
-          updateStatus('ai', 'AI System Ready');
+          updateStatus('loading', 'AI Ready - Login Required');
           
-          // Set up authentication handler
+          // Set up auth handler
           if (window.puter.onAuth) {
             window.puter.onAuth = function(user) {
-              console.log('✅ User authenticated:', user?.username || 'User');
+              console.log('✅ Authenticated:', user?.username);
               isAuthenticated = true;
-              updateStatus('ai', 'AI Ready & Authenticated');
+              updateStatus('ai', `Logged in as ${user?.username}`);
+              loginBtn.style.display = 'none';
             };
           }
           
-          // Test AI connection immediately
-          testAIConnection();
-          
-        } else if (checkCount >= maxChecks) {
+        } else if (checkCount >= 10) {
           clearInterval(puterCheck);
-          console.warn('⚠️ PuterJS AI not available after 20 seconds, switching to local mode');
-          handlePuterError();
+          console.warn('⚠️ PuterJS timeout, using local mode');
+          useAI = false;
+          updateStatus('local', 'Local Mode Active');
+          loginBtn.style.display = 'none';
         }
-      }, 1000); // Check every 1 second
+      }, 1000);
     }
     
-    // PuterJS Error Handler
-    function handlePuterError() {
-      console.log('📝 Switching to enhanced local mode');
-      useAI = false;
-      puterReady = false;
-      updateStatus('local', 'Local Mode Active');
-    }
-    
-    // Test AI connection
-    async function testAIConnection() {
-      try {
-        console.log('🧪 Testing AI connection...');
-        const testResponse = await window.puter.ai.chat('Test');
-        console.log('✅ AI test successful!');
-        updateStatus('ai', 'AI Connection Verified');
-      } catch (error) {
-        console.log('🔧 AI requires authentication');
-        updateStatus('ai', 'AI Ready (Authentication Required)');
+    // Login button handler
+    loginBtn.addEventListener('click', async () => {
+      if (!puterReady) {
+        alert('PuterJS not ready yet. Please wait a moment.');
+        return;
       }
-    }
+      
+      try {
+        updateStatus('loading', 'Authenticating...');
+        console.log('🔐 Starting authentication...');
+        
+        await window.puter.auth.signIn();
+        const user = await window.puter.auth.getUser();
+        
+        console.log('✅ Login successful:', user);
+        isAuthenticated = true;
+        updateStatus('ai', `Logged in as ${user.username}`);
+        loginBtn.style.display = 'none';
+        
+      } catch (error) {
+        console.error('❌ Login failed:', error);
+        updateStatus('loading', 'Login Failed - Try Again');
+        alert('Login failed: ' + error.message);
+      }
+    });
     
-    // AI Prompts - DETAILED for better results
-    const promptTemplates = {
+    // Simplified but effective prompts
+    const aiPrompts = {
       tsundere: {
-        1: "Transform this sentence to subtle tsundere anime style. Add mild embarrassment, slight denial (like 'not that I care'), and cute emoticons like >.<. Keep it gentle and not too over the top. Sentence: ",
-        2: "Rewrite this in moderate tsundere style. Include stuttering (I-It's not like...), embarrassed denials, blushing expressions, and emoticons like >///<, >.<. Make it clearly tsundere but not extreme. Sentence: ",
-        3: "Convert to maximum tsundere style! Include intense stuttering (B-BAKA!), strong embarrassed denials, lots of blushing expressions, and emoticons like >////<, >.<, >_<. Go full tsundere mode with 'Don't get the wrong idea!' type phrases. Sentence: "
+        1: "Transform this sentence to subtle tsundere anime style with mild embarrassment and >.<: ",
+        2: "Rewrite in tsundere style with stuttering (I-It's not like...), denials, and >///<: ",
+        3: "Make this maximum tsundere with B-BAKA!, strong denials, and >////<: "
       },
       kuudere: {
-        1: "Transform to subtle kuudere anime style. Make it calm and slightly emotionless, add trailing dots (...), and a dismissive tone. Keep it mild. Sentence: ",
-        2: "Rewrite in moderate kuudere personality. Make it cold, analytical, dismissive, with emoticons like -_-, ._., and lots of trailing ellipses. Show emotional distance. Sentence: ",
-        3: "Convert to maximum kuudere style! Make it completely emotionless, very analytical and cold, dismissive attitude, minimal emoticons (._., -.-), lots of pauses (...), and phrases showing emotional detachment. Sentence: "
+        1: "Transform to subtle kuudere style with calm tone and trailing dots: ",
+        2: "Rewrite in kuudere style with cold, analytical tone and -_-: ",
+        3: "Make this maximum kuudere with emotionless, dismissive tone and lots of ...: "
       },
       yandere: {
-        1: "Transform to subtle yandere anime style. Add gentle obsessiveness, sweet but slightly possessive tone, and heart symbols (♡, ❤). Keep it mild and cute. Sentence: ",
-        2: "Rewrite in moderate yandere personality. Include creepy sweetness, possessiveness, 'ehehe' or 'ufufu' laughs, hearts (♡, ❤), and slightly obsessive undertones. Sentence: ",
-        3: "Convert to maximum yandere style! Make it extremely possessive and obsessive, include threatening but sweet undertones, creepy laughs (ehehe, ufufu, ahaha), lots of hearts (♡, ❤, 💕), and phrases about 'being together forever' or 'just us'. Sentence: "
+        1: "Transform to subtle yandere style with sweet tone and ♡: ",
+        2: "Rewrite in yandere style with possessiveness, ehehe, and ❤: ",
+        3: "Make this maximum yandere with obsessive tone, creepy laughs, and lots of ♡❤: "
       }
     };
     
-    // Local fallback transformations
+    // Local fallbacks
     const localTransformers = {
       tsundere: {
         1: s => s + " ...not that I care or anything. >.<",
-        2: s => "I-It's not like I wanted to say this... " + s.replace(/(\.|!|\?)$/, " >//< $&") + " B-baka!",
-        3: s => "B-BAKA! " + s.replace(/(\.|!|\?)$/, " >///< $&") + " I-It's not like I wanted to say that or anything! Don't get the wrong idea! >/////<"
+        2: s => "I-It's not like I wanted to say this... " + s + " B-baka! >///<",
+        3: s => "B-BAKA! " + s + " I-It's not like I wanted to say that! Don't get the wrong idea! >/////<"
       },
       kuudere: {
-        1: s => s.replace(/(\.|!|\?)$/, "... $&") + " Nothing more.",
-        2: s => "Hmm... " + s.replace(/(\.|!|\?)$/, "... $&") + " It's just a fact, nothing special. -.-",
-        3: s => "..." + s.replace(/(\.|!|\?)$/, "... $&") + " It's merely logical. Don't expect me to repeat myself... -_- Whatever."
+        1: s => s + "... Nothing more.",
+        2: s => "Hmm... " + s + "... It's just a fact. -.-",
+        3: s => "..." + s + "... It's logical. Don't expect me to repeat myself. -_-"
       },
       yandere: {
-        1: s => s.replace(/(\.|!|\?)$/, " ♡$&") + " Ehehe~",
-        2: s => "Ehehe... " + s.replace(/(\.|!|\?)$/, " ❤$&") + " We'll be together, won't we? ♡",
-        3: s => "Ahaha... ♡ " + s.replace(/(\.|!|\?)$/, " ❤$&") + " We'll be together forever... just us... ♡ No one else matters~ Ehehe... ❤"
+        1: s => s + " ♡ Ehehe~",
+        2: s => "Ehehe... " + s + " ❤ We'll be together, won't we? ♡",
+        3: s => "Ahaha... ♡ " + s + " ❤ We'll be together forever... just us... ♡"
       }
     };
     
@@ -837,16 +860,11 @@
       if (particleInterval) clearInterval(particleInterval);
       if (particleContainer) particleContainer.innerHTML = '';
       
-      const particleFunctions = {
-        tsundere: createCherryBlossoms,
-        kuudere: createSnowflakes,
-        yandere: createRosePetals
-      };
-      
+      const functions = { tsundere: createCherryBlossoms, kuudere: createSnowflakes, yandere: createRosePetals };
       const intervals = { tsundere: 800, kuudere: 600, yandere: 1200 };
       
-      if (particleFunctions[style]) {
-        particleInterval = setInterval(particleFunctions[style], intervals[style]);
+      if (functions[style]) {
+        particleInterval = setInterval(functions[style], intervals[style]);
       }
     }
     
@@ -870,14 +888,13 @@
       btn.addEventListener('click', () => {
         btns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
         currentStyle = btn.dataset.style;
         body.className = currentStyle;
         startParticles(currentStyle);
       });
     });
     
-    // MAIN TRANSFORM FUNCTION
+    // Transform function
     const convertBtn = document.querySelector('.btn-convert');
     convertBtn?.addEventListener('click', async () => {
       const inp = document.getElementById('input');
@@ -902,78 +919,54 @@
       let transformedText = '';
       let usedAI = false;
       
-      // Try AI if available
-      if (useAI && puterReady && window.puter?.ai?.chat) {
+      // Try AI if authenticated
+      if (useAI && puterReady && isAuthenticated && window.puter?.ai?.chat) {
         try {
           if (outputElement) outputElement.textContent = 'AI processing...';
-          console.log('🤖 Sending to AI...');
+          console.log('🤖 Using AI...');
           
-          const promptTemplate = promptTemplates[currentStyle]?.[currentIntensity] || '';
-          const fullPrompt = promptTemplate + `"${inputText}"`;
-          
-          console.log('🤖 Prompt:', fullPrompt);
+          const prompt = aiPrompts[currentStyle]?.[currentIntensity] + `"${inputText}"`;
+          console.log('Prompt:', prompt);
           
           const aiResponse = await Promise.race([
-            window.puter.ai.chat(fullPrompt),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('AI timeout')), 30000))
+            window.puter.ai.chat(prompt),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
           ]);
           
-          if (aiResponse?.trim?.()) {
+          if (aiResponse && aiResponse.trim()) {
             transformedText = aiResponse.trim();
             usedAI = true;
-            console.log('✅ AI Success!');
-            updateStatus('ai', 'AI Transformation Complete');
+            console.log('✅ AI success');
           } else {
-            throw new Error('Empty AI response');
+            throw new Error('Empty response');
           }
           
         } catch (error) {
-          console.warn('🤖 AI Error:', error.message);
-          
-          if (error.message.includes('auth') || error.message.includes('401')) {
-            if (outputElement) outputElement.textContent = 'Please authenticate in the popup...';
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            try {
-              const retryResponse = await window.puter.ai.chat(fullPrompt);
-              if (retryResponse?.trim?.()) {
-                transformedText = retryResponse.trim();
-                usedAI = true;
-                isAuthenticated = true;
-                updateStatus('ai', 'Authenticated & Ready');
-              } else {
-                throw new Error('Retry failed');
-              }
-            } catch (retryError) {
-              usedAI = false;
-            }
-          } else {
-            usedAI = false;
-          }
+          console.warn('🤖 AI failed:', error.message);
+          usedAI = false;
         }
       }
       
       // Fallback to local
       if (!usedAI) {
-        console.log('📝 Using local transformation');
+        console.log('📝 Using local');
         const transformer = localTransformers[currentStyle]?.[currentIntensity];
         transformedText = transformer ? transformer(inputText) : inputText + " ✨";
-        updateStatus('local', 'Local Transformation Used');
       }
       
       // Show result
       convertBtn.classList.remove('loading');
       if (spinner) spinner.style.display = 'none';
       
-      const typingSpeeds = { kuudere: 70, tsundere: 35, yandere: 55 };
-      const speed = typingSpeeds[currentStyle] || 50;
+      const speeds = { kuudere: 70, tsundere: 35, yandere: 55 };
+      const speed = speeds[currentStyle] || 50;
       
       if (outputElement) typeWriter(outputElement, transformedText, speed);
       
       // Visual feedback
-      const successColor = usedAI ? '#4caf50' : '#ff9800';
-      convertBtn.style.background = `linear-gradient(45deg, ${successColor}, ${successColor}aa)`;
-      setTimeout(() => convertBtn.style.background = '', 1500);
+      const color = usedAI ? '#4caf50' : '#ff9800';
+      convertBtn.style.background = color;
+      setTimeout(() => convertBtn.style.background = '', 1000);
     });
     
     // Keyboard shortcut
@@ -986,7 +979,15 @@
     
     // Initialize
     startParticles('tsundere');
-    updateStatus('loading', 'Loading PuterJS...');
+    updateStatus('loading', 'Loading...');
+    
+    // Auto-hide login button if not needed
+    setTimeout(() => {
+      if (!puterReady) {
+        loginBtn.style.display = 'none';
+        updateStatus('local', 'Local Mode Active');
+      }
+    }, 15000);
   </script>
 </body>
 </html>
