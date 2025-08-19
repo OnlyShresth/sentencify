@@ -678,7 +678,7 @@
   <script src="https://js.puter.com/v2/" async onload="initializePuter()"></script>
   
   <script>
-    // Global variables - All properly initialized
+    // Global variables
     let currentStyle = 'tsundere';
     let currentIntensity = 2;
     let particleInterval = null;
@@ -686,7 +686,6 @@
     let useAI = false;
     let puterReady = false;
     
-    // DOM elements - Safe references
     const body = document.body;
     const btns = document.querySelectorAll('.style-btn');
     const particleContainer = document.getElementById('particleContainer');
@@ -698,7 +697,6 @@
     const outputElement = document.getElementById('output');
     const spinner = document.getElementById('loadingSpinner');
     
-    // Safe utility function to update status
     function updateStatus(status, message) {
       if (!statusIndicator) return;
       
@@ -718,36 +716,68 @@
       statusIndicator.innerHTML = `<i class="${iconMap[status]}"></i> ${messageMap[status]}`;
     }
     
-    // Safe response text extraction
+    // FIXED: Proper PuterJS response parsing
     function extractResponseText(response) {
+      console.log('Raw AI response:', response);
+      
       try {
-        // Handle different response formats
+        // Handle string response
         if (typeof response === 'string') {
-          return response.trim();
+          const text = response.trim();
+          console.log('Extracted string response:', text);
+          return text;
         }
+        
+        // Handle object response with different structures
         if (response && typeof response === 'object') {
-          // Try different possible structures
-          if (response.text && typeof response.text === 'string') {
-            return response.text.trim();
-          }
-          if (response.content && typeof response.content === 'string') {
-            return response.content.trim();
-          }
-          if (response.choices && Array.isArray(response.choices) && response.choices[0]) {
+          // Try choices[0].message.content (OpenAI format)
+          if (response.choices && Array.isArray(response.choices) && response.choices) {
             const choice = response.choices;
-            if (choice.message && choice.message.content) {
-              return choice.message.content.trim();
+            if (choice.message && typeof choice.message.content === 'string') {
+              const text = choice.message.content.trim();
+              console.log('Extracted from choices.message.content:', text);
+              return text;
             }
           }
+          
+          // Try direct text property
+          if (typeof response.text === 'string') {
+            const text = response.text.trim();
+            console.log('Extracted from text property:', text);
+            return text;
+          }
+          
+          // Try direct content property
+          if (typeof response.content === 'string') {
+            const text = response.content.trim();
+            console.log('Extracted from content property:', text);
+            return text;
+          }
+          
+          // Try message property
+          if (response.message && typeof response.message === 'string') {
+            const text = response.message.trim();
+            console.log('Extracted from message property:', text);
+            return text;
+          }
+          
+          // Try result.message.content (some APIs)
+          if (response.result && response.result.message && typeof response.result.message.content === 'string') {
+            const text = response.result.message.content.trim();
+            console.log('Extracted from result.message.content:', text);
+            return text;
+          }
         }
+        
+        console.warn('Could not extract text from response:', response);
         return '';
+        
       } catch (error) {
-        console.warn('Error extracting response text:', error);
+        console.error('Error extracting response text:', error);
         return '';
       }
     }
     
-    // PuterJS Initialization with proper error handling
     function initializePuter() {
       console.log('🤖 PuterJS script loaded');
       
@@ -771,7 +801,6 @@
             useAI = true;
             updateStatus('loading', 'AI Ready - Login Required');
             
-            // Set up authentication handler
             try {
               if (window.puter.onAuth && typeof window.puter.onAuth === 'function') {
                 window.puter.onAuth = function(user) {
@@ -806,7 +835,6 @@
       }, 1000);
     }
     
-    // Login button handler with comprehensive error handling
     if (loginBtn) {
       loginBtn.addEventListener('click', async () => {
         if (!puterReady || !window.puter) {
@@ -846,10 +874,10 @@
       });
     }
     
-    // AI Prompts - Simplified and tested
+    // FIXED: Better AI prompts with explicit model
     const aiPrompts = {
       tsundere: {
-        1: "Transform this to subtle tsundere style with mild embarrassment and >.<: ",
+        1: "Transform this to subtle tsundere anime style with mild embarrassment and >.<: ",
         2: "Rewrite in tsundere style with stuttering (I-It's not like...) and >///<: ",
         3: "Make this maximum tsundere with B-BAKA!, strong denials, and >////<: "
       },
@@ -865,7 +893,6 @@
       }
     };
     
-    // Local transformations - Bug-free implementations
     const localTransformers = {
       tsundere: {
         1: function(s) { return s + " ...not that I care or anything. >.<"; },
@@ -884,19 +911,17 @@
       }
     };
     
-    // Intensity slider with validation
     if (intensitySlider) {
       intensitySlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         if (!isNaN(value) && value >= 1 && value <= 3) {
           currentIntensity = value;
         } else {
-          currentIntensity = 2; // Default fallback
+          currentIntensity = 2;
         }
       });
     }
     
-    // Particle functions with error handling
     function createParticle(className, animationDuration) {
       try {
         const particle = document.createElement('div');
@@ -946,7 +971,6 @@
       }
     }
     
-    // Typing effect with error handling
     function typeWriter(element, text, speed) {
       if (!element || typeof text !== 'string') {
         console.warn('Invalid typeWriter parameters');
@@ -966,14 +990,13 @@
           }
         } catch (error) {
           console.warn('Typing effect error:', error);
-          if (element) element.textContent = text; // Fallback
+          if (element) element.textContent = text;
         }
       }
       
       type();
     }
     
-    // Theme switching with validation
     if (btns && btns.length > 0) {
       btns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -996,7 +1019,7 @@
       });
     }
     
-    // Main transform function - Completely debugged
+    // FIXED: Main transform function with retry logic
     if (convertBtn) {
       convertBtn.addEventListener('click', async () => {
         try {
@@ -1014,7 +1037,6 @@
             return;
           }
           
-          // Show loading state
           convertBtn.classList.add('loading');
           if (spinner) spinner.style.display = 'inline-block';
           
@@ -1038,26 +1060,47 @@
               const fullPrompt = promptTemplate + `"${inputText}"`;
               console.log('Sending prompt:', fullPrompt);
               
-              // AI call with timeout
+              // FIXED: AI call with explicit model and longer timeout
+              const aiOptions = {
+                model: 'gpt-4o-mini'  // Specify a working model
+              };
+              
               const aiResponse = await Promise.race([
-                window.puter.ai.chat(fullPrompt),
+                window.puter.ai.chat(fullPrompt, aiOptions),
                 new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('AI request timeout')), 20000)
+                  setTimeout(() => reject(new Error('AI request timeout')), 30000) // Increased timeout
                 )
               ]);
               
-              console.log('Raw AI response:', aiResponse);
+              console.log('Raw AI response received:', aiResponse);
               
-              // Safe text extraction
+              // FIXED: Use the new extraction function
               const responseText = extractResponseText(aiResponse);
               
               if (responseText && responseText.length > 0) {
                 transformedText = responseText;
                 usedAI = true;
-                console.log('✅ AI transformation successful');
+                console.log('✅ AI transformation successful:', transformedText);
               } else {
-                console.warn('Empty AI response, using local fallback');
-                usedAI = false;
+                console.warn('Empty AI response after extraction, retrying...');
+                
+                // RETRY once more with different approach
+                try {
+                  const retryResponse = await window.puter.ai.chat(`Please rewrite "${inputText}" in ${currentStyle} anime style.`);
+                  const retryText = extractResponseText(retryResponse);
+                  
+                  if (retryText && retryText.length > 0) {
+                    transformedText = retryText;
+                    usedAI = true;
+                    console.log('✅ AI retry successful:', transformedText);
+                  } else {
+                    console.warn('AI retry also failed, using local fallback');
+                    usedAI = false;
+                  }
+                } catch (retryError) {
+                  console.warn('AI retry failed:', retryError);
+                  usedAI = false;
+                }
               }
               
             } catch (aiError) {
@@ -1074,22 +1117,19 @@
             if (transformer && typeof transformer === 'function') {
               transformedText = transformer(inputText);
             } else {
-              transformedText = inputText + " ✨"; // Ultimate fallback
+              transformedText = inputText + " ✨";
             }
           }
           
-          // Hide loading state
           convertBtn.classList.remove('loading');
           if (spinner) spinner.style.display = 'none';
           
-          // Display result with typing effect
           if (outputElement && transformedText) {
             const typingSpeeds = { kuudere: 70, tsundere: 35, yandere: 55 };
             const speed = typingSpeeds[currentStyle] || 50;
             typeWriter(outputElement, transformedText, speed);
           }
           
-          // Visual feedback
           const feedbackColor = usedAI ? '#4caf50' : '#ff9800';
           convertBtn.style.background = feedbackColor;
           setTimeout(() => {
@@ -1099,7 +1139,6 @@
         } catch (error) {
           console.error('Transform function error:', error);
           
-          // Emergency fallback
           convertBtn.classList.remove('loading');
           if (spinner) spinner.style.display = 'none';
           
@@ -1110,7 +1149,6 @@
       });
     }
     
-    // Keyboard shortcut with error handling
     if (inputElement) {
       inputElement.addEventListener('keydown', (ev) => {
         try {
@@ -1124,12 +1162,10 @@
       });
     }
     
-    // Initialize app
     try {
       startParticles('tsundere');
       updateStatus('loading', 'Loading...');
       
-      // Auto-switch to local mode if AI doesn't load
       setTimeout(() => {
         if (!puterReady && !useAI) {
           if (loginBtn) loginBtn.style.display = 'none';
