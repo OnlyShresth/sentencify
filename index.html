@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Font Awesome Icons - FIXED CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --primary: #ff7675;
@@ -74,6 +72,23 @@
     
     .footer-credit:hover {
       color: var(--primary);
+    }
+    
+    /* Unicode Icon Styles */
+    .icon {
+      font-style: normal;
+      font-size: 1.2em;
+      margin-right: 0.5em;
+    }
+    
+    .spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     
     .particle-container {
@@ -183,7 +198,7 @@
       animation: slideInLeft 0.8s ease-out;
     }
     
-    .logo i {
+    .logo .icon {
       margin-right: 0.5em;
       animation: pulse 2s infinite;
     }
@@ -355,10 +370,6 @@
       background: rgba(33, 150, 243, 0.1);
       color: #1976d2;
       border: 1px solid rgba(33, 150, 243, 0.3);
-    }
-    
-    .status-indicator i {
-      font-size: 0.9em;
     }
     
     .intensity-control {
@@ -533,11 +544,6 @@
       margin-right: 0.5em;
     }
     
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
     .output-section {
       width: 100%;
       display: flex;
@@ -643,7 +649,7 @@
   
   <header>
     <div class="logo">
-      <i class="fas fa-magic"></i>
+      <span class="icon">✨</span>
       Sentencify
     </div>
     <nav>
@@ -660,7 +666,7 @@
       <button class="login-btn" id="loginBtn">🔐 Login for AI Transformations</button>
       
       <div class="status-indicator status-loading" id="statusIndicator">
-        <i class="fas fa-spinner fa-spin"></i> Initializing...
+        <span class="icon spinner">⟳</span> Initializing...
       </div>
       
       <div class="intensity-control">
@@ -682,7 +688,7 @@
       <div class="actions">
         <button class="btn-convert">
           <div class="loading-spinner" id="loadingSpinner"></div>
-          <i class="fas fa-wand-magic-sparkles"></i> Transform
+          <span class="icon">🪄</span> Transform
         </button>
       </div>
       
@@ -762,9 +768,9 @@
       if (!statusIndicator) return;
       
       const icons = {
-        ai: 'fas fa-robot',
-        local: 'fas fa-cog',
-        loading: 'fas fa-spinner fa-spin'
+        ai: '🤖',
+        local: '⚙️',
+        loading: '⟳'
       };
       
       const messages = {
@@ -774,7 +780,8 @@
       };
       
       statusIndicator.className = `status-indicator status-${status}`;
-      statusIndicator.innerHTML = `<i class="${icons[status]}"></i> ${messages[status]}`;
+      const iconClass = status === 'loading' ? 'icon spinner' : 'icon';
+      statusIndicator.innerHTML = `<span class="${iconClass}">${icons[status]}</span> ${messages[status]}`;
     }
     
     function initializePuter() {
