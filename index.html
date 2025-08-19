@@ -674,7 +674,6 @@
   <script src="https://js.puter.com/v2/" async onload="initializePuter()"></script>
   
   <script>
-    // Application state
     let currentStyle = 'tsundere';
     let currentIntensity = 2;
     let particleInterval = null;
@@ -682,7 +681,6 @@
     let useAI = false;
     let puterReady = false;
     
-    // DOM references
     const body = document.body;
     const btns = document.querySelectorAll('.style-btn');
     const particleContainer = document.getElementById('particleContainer');
@@ -694,52 +692,33 @@
     const outputElement = document.getElementById('output');
     const spinner = document.getElementById('loadingSpinner');
     
-    // FIXED: Bulletproof response extraction
+    // FIXED: Correct PuterJS response parsing based on console output
     function extractResponseText(response) {
       console.log('Raw AI response type:', typeof response);
       console.log('Raw AI response:', response);
       
       try {
-        // Handle direct string
+        // Handle direct string response
         if (typeof response === 'string') {
           const text = response.trim();
           console.log('✅ Extracted string response:', text);
           return text;
         }
         
-        // Handle object with choices array (OpenAI format)
+        // Handle object response - PuterJS format has message.content directly
         if (response && typeof response === 'object') {
-          
-          // Debug: log object structure
           console.log('Response keys:', Object.keys(response));
-          console.log('Response choices:', response.choices);
           
-          // Extract from choices array
-          if (response.choices && Array.isArray(response.choices)) {
-            let fullText = '';
-            
-            response.choices.forEach((choice, index) => {
-              console.log(`Choice ${index}:`, choice);
-              
-              if (choice && choice.message && typeof choice.message.content === 'string') {
-                const content = choice.message.content.trim();
-                if (content) {
-                  fullText += content + ' ';
-                  console.log(`✅ Extracted from choice ${index}:`, content);
-                }
-              }
-            });
-            
-            fullText = fullText.trim();
-            if (fullText) {
-              console.log('✅ Final extracted text from choices:', fullText);
-              return fullText;
-            }
+          // FIXED: PuterJS response format is response.message.content
+          if (response.message && typeof response.message.content === 'string') {
+            const content = response.message.content.trim();
+            console.log('✅ Extracted from message.content:', content);
+            return content;
           }
           
-          // Fallback: try other common properties
-          const fallbackProperties = ['text', 'content', 'message', 'output', 'result'];
-          for (const prop of fallbackProperties) {
+          // Fallback for other possible structures
+          const fallbackProps = ['text', 'content', 'output', 'result'];
+          for (const prop of fallbackProps) {
             if (response[prop] && typeof response[prop] === 'string') {
               const text = response[prop].trim();
               if (text) {
@@ -835,7 +814,6 @@
       }, 1000);
     }
     
-    // Login handler
     if (loginBtn) {
       loginBtn.addEventListener('click', async () => {
         if (!puterReady || !window.puter) {
@@ -871,7 +849,6 @@
       });
     }
     
-    // AI prompts
     const aiPrompts = {
       tsundere: {
         1: "Transform this to subtle tsundere anime style with mild embarrassment and >.<: ",
@@ -890,7 +867,6 @@
       }
     };
     
-    // Local transformations
     const localTransformers = {
       tsundere: {
         1: s => s + " ...not that I care or anything. >.<",
@@ -909,7 +885,6 @@
       }
     };
     
-    // Intensity slider
     if (intensitySlider) {
       intensitySlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
@@ -917,7 +892,6 @@
       });
     }
     
-    // Particle system
     function createParticle(className, duration) {
       try {
         const particle = document.createElement('div');
@@ -955,7 +929,6 @@
       }
     }
     
-    // Typing effect
     function typeWriter(element, text, speed = 50) {
       if (!element || !text) return;
       
@@ -976,7 +949,6 @@
       type();
     }
     
-    // Theme switching
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         try {
@@ -995,7 +967,6 @@
       });
     });
     
-    // MAIN TRANSFORM FUNCTION
     if (convertBtn) {
       convertBtn.addEventListener('click', async () => {
         try {
@@ -1011,14 +982,12 @@
             return;
           }
           
-          // Show loading
           convertBtn.classList.add('loading');
           if (spinner) spinner.style.display = 'inline-block';
           
           let transformedText = '';
           let usedAI = false;
           
-          // Try AI if authenticated
           if (useAI && puterReady && isAuthenticated && window.puter?.ai?.chat) {
             try {
               if (outputElement) outputElement.textContent = 'AI processing...';
@@ -1030,7 +999,6 @@
               
               console.log('📝 Sending prompt:', fullPrompt);
               
-              // AI call with timeout
               const aiResponse = await Promise.race([
                 window.puter.ai.chat(fullPrompt),
                 new Promise((_, reject) => 
@@ -1040,7 +1008,6 @@
               
               console.log('📥 Raw AI response received');
               
-              // FIXED: Use improved extraction
               const responseText = extractResponseText(aiResponse);
               
               if (responseText && responseText.length > 0) {
@@ -1048,22 +1015,8 @@
                 usedAI = true;
                 console.log('✅ AI transformation successful');
               } else {
-                console.warn('⚠️ Empty response, trying retry...');
-                
-                // Simple retry
-                const retryResponse = await window.puter.ai.chat(
-                  `Transform "${inputText}" to ${currentStyle} anime personality style.`
-                );
-                const retryText = extractResponseText(retryResponse);
-                
-                if (retryText && retryText.length > 0) {
-                  transformedText = retryText;
-                  usedAI = true;
-                  console.log('✅ AI retry successful');
-                } else {
-                  console.warn('❌ AI retry failed, using local');
-                  usedAI = false;
-                }
+                console.warn('❌ Empty response, using local fallback');
+                usedAI = false;
               }
               
             } catch (aiError) {
@@ -1072,14 +1025,12 @@
             }
           }
           
-          // Local fallback
           if (!usedAI) {
             console.log('📝 Using local transformation');
             const transformer = localTransformers[currentStyle]?.[currentIntensity];
             transformedText = transformer ? transformer(inputText) : inputText + " ✨";
           }
           
-          // Show result
           convertBtn.classList.remove('loading');
           if (spinner) spinner.style.display = 'none';
           
@@ -1088,7 +1039,6 @@
             typeWriter(outputElement, transformedText, speeds[currentStyle] || 50);
           }
           
-          // Visual feedback
           const color = usedAI ? '#4caf50' : '#ff9800';
           convertBtn.style.background = color;
           setTimeout(() => convertBtn.style.background = '', 1000);
@@ -1106,7 +1056,6 @@
       });
     }
     
-    // Keyboard shortcut
     if (inputElement) {
       inputElement.addEventListener('keydown', (ev) => {
         if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
@@ -1116,11 +1065,9 @@
       });
     }
     
-    // Initialize
     startParticles('tsundere');
     updateStatus('loading', 'Loading...');
     
-    // Auto-fallback timer
     setTimeout(() => {
       if (!puterReady) {
         if (loginBtn) loginBtn.style.display = 'none';
