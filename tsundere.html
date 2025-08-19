@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sentencify – Anime Style Sentence Transformations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    /* Base Styles - Tsundere Default */
+    :root {
+      --primary: #ff7675;
+      --background: #fff0f3;
+      --accent: #ffeaea;
+      --text: #2d0505;
+      --surface: rgba(255,210,220,0.58);
+      --glass-border: #fcc2df;
+      --shadow: 0 4px 24px 0 #ff96965a;
+      --menu-bg: #fff7fb;
+    }
+    
+    .kuudere {
+      --primary: #7ed6fa;
+      --background: #1c2237;
+      --accent: #292f42;
+      --text: #cdeaff;
+      --surface: rgba(44, 62, 80, 0.7);
+      --glass-border: #86c9f4;
+      --shadow: 0 4px 28px 0 #1C5A8C50;
+      --menu-bg: #202539ee;
+    }
+    
+    .yandere {
+      --primary: #b4004e;
+      --background: #ffdde8;
+      --accent: #fde6f5;
+      --text: #331526;
+      --surface: rgba(240, 144, 201, 0.2);
+      --glass-border: #ec267e;
+      --shadow: 0 4px 20px 0 #d65691b7;
+      --menu-bg: #fff7fa;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    
+    body {
+      min-height: 100vh;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--background) 0%, var(--accent) 100%);
+      color: var(--text);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+      position: relative;
+    }
+    
+    /* Particle Systems */
+    .particle-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      pointer-events: none;
+    }
+    
+    .cherry-blossom {
+      width: 12px;
+      height: 12px;
+      background: #ffb3d9;
+      border-radius: 50% 0 50% 0;
+      animation: fall-cherry 8s linear infinite, sway 3s ease-in-out infinite alternate;
+      opacity: 0.7;
+    }
+    
+    @keyframes fall-cherry {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.7; }
+      90% { opacity: 0.7; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    
+    @keyframes sway {
+      0% { transform: translateX(-20px); }
+      100% { transform: translateX(20px); }
+    }
+    
+    .snowflake {
+      width: 8px;
+      height: 8px;
+      background: #b3e5fc;
+      border-radius: 50%;
+      animation: fall-snow 6s linear infinite, rotate 4s linear infinite;
+      opacity: 0.8;
+      box-shadow: 0 0 6px #81d4fa;
+    }
+    
+    @keyframes fall-snow {
+      0% { transform: translateY(-100px); opacity: 0; }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.8; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+    
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .rose-petal {
+      width: 10px;
+      height: 14px;
+      background: #d32f2f;
+      border-radius: 50% 0 50% 50%;
+      animation: fall-petal 10s linear infinite, flutter 2s ease-in-out infinite alternate;
+      opacity: 0.6;
+    }
+    
+    @keyframes fall-petal {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.6; }
+      100% { transform: translateY(100vh) rotate(180deg); opacity: 0; }
+    }
+    
+    @keyframes flutter {
+      0% { transform: translateX(-15px) rotate(-10deg); }
+      100% { transform: translateX(15px) rotate(10deg); }
+    }
+    
+    header {
+      display: flex;
+      align-items: center;
+      padding: 1.2em 2em;
+      background: var(--menu-bg);
+      box-shadow: var(--shadow);
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      border-bottom: 2px solid var(--primary);
+      backdrop-filter: blur(12px);
+      transition: all 0.6s ease;
+    }
+    
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2em;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: .06em;
+      display: flex;
+      align-items: center;
+      text-shadow: 1px 2px 10px #fff1;
+      animation: slideInLeft 0.8s ease-out;
+    }
+    
+    .logo i {
+      margin-right: 0.5em;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    nav {
+      display: flex;
+      gap: 1.7em;
+      animation: slideInRight 0.8s ease-out;
+    }
+    
+    .style-btn {
+      font-size: 1.1em;
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 0.45em 1.3em;
+      border-radius: 1em;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .style-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: var(--primary);
+      border-radius: 50%;
+      transition: all 0.4s ease;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+    
+    .style-btn:hover::before {
+      width: 120%;
+      height: 200%;
+    }
+    
+    .style-btn:hover {
+      color: #fff;
+      box-shadow: 0 8px 25px var(--primary)40;
+      transform: translateY(-3px) scale(1.05);
+    }
+    
+    .style-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px 0 var(--primary)60;
+      transform: translateY(-2px) scale(1.02);
+    }
+    
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 2.5em 0 3em 0;
+      padding: 0 1em;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1.5px solid var(--glass-border);
+      border-radius: 1.5em;
+      box-shadow: var(--shadow);
+      padding: 2.2em 2.5em 2em 2.5em;
+      width: 100%;
+      max-width: 600px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4em;
+      margin-bottom: 2em;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 2;
+      box-sizing: border-box;
+      animation: slideInUp 1s ease-out;
+      transform-origin: center bottom;
+    }
+    
+    @keyframes slideInLeft {
+      0% { transform: translateX(-100px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideInRight {
+      0% { transform: translateX(100px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideInUp {
+      0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    
+    .card h2 {
+      text-align: center;
+      margin: 0 0 1em 0;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.6em;
+      color: var(--primary);
+      letter-spacing: .04em;
+      width: 100%;
+      animation: fadeInDown 1.2s ease-out;
+    }
+    
+    @keyframes fadeInDown {
+      0% { transform: translateY(-30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.85em;
+      padding: 0.4em 0.8em;
+      border-radius: 1em;
+      margin-bottom: 0.5em;
+      font-weight: 500;
+    }
+    
+    .status-ai {
+      background: rgba(76, 175, 80, 0.1);
+      color: #388e3c;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+    
+    .status-local {
+      background: rgba(255, 193, 7, 0.1);
+      color: #f57c00;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+    
+    .status-loading {
+      background: rgba(33, 150, 243, 0.1);
+      color: #1976d2;
+      border: 1px solid rgba(33, 150, 243, 0.3);
+    }
+    
+    .status-indicator i {
+      font-size: 0.9em;
+    }
+    
+    .intensity-control {
+      width: 100%;
+      margin: 1em 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8em;
+    }
+    
+    .intensity-label {
+      font-size: 1.1em;
+      color: var(--primary);
+      font-weight: 500;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .slider-container {
+      width: 100%;
+      max-width: 300px;
+      position: relative;
+    }
+    
+    .intensity-slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: var(--accent);
+      outline: none;
+      transition: all 0.3s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .intensity-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 2px 10px var(--primary)50;
+      transition: all 0.2s ease;
+    }
+    
+    .intensity-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 4px 15px var(--primary)70;
+    }
+    
+    .intensity-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 0.5em;
+      font-size: 0.85em;
+      color: var(--text);
+      opacity: 0.7;
+    }
+    
+    .input-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 1.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    textarea {
+      font-size: 1.17em;
+      padding: 1em 1em;
+      border-radius: 1em;
+      border: 2px solid var(--glass-border);
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+      margin-bottom: 1em;
+      background: rgba(255, 247, 251, 0.9);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    
+    textarea::placeholder {
+      text-align: center;
+      transition: opacity 0.3s ease;
+    }
+    
+    textarea:focus {
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 20px var(--primary)30;
+      transform: scale(1.02);
+    }
+    
+    textarea:focus::placeholder {
+      opacity: 0.3;
+    }
+    
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1.5em;
+      align-items: center;
+      width: 100%;
+      animation: fadeIn 1.6s ease-out;
+    }
+    
+    .btn-convert {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-size: 1.12em;
+      border-radius: 2em;
+      letter-spacing: 0.04em;
+      padding: 0.65em 2.5em;
+      cursor: pointer;
+      font-weight: 550;
+      box-shadow: 0 4px 18px 0 var(--primary)30;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-convert::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transition: all 0.6s ease;
+      transform: translate(-50%, -50%);
+    }
+    
+    .btn-convert:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .btn-convert:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px var(--primary)50;
+    }
+    
+    .btn-convert:active {
+      transform: scale(0.98);
+    }
+    
+    .btn-convert.loading {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ffffff50;
+      border-top: 2px solid #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 0.5em;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .output-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 1.8s ease-out;
+    }
+    
+    .output-label {
+      margin-top: 2em;
+      font-size: 1.09em;
+      color: var(--primary);
+      letter-spacing: .02em;
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+      width: 100%;
+    }
+    
+    .output {
+      margin-top: 0.5em;
+      font-size: 1.18em;
+      background: var(--accent);
+      border-radius: 1em;
+      border: none;
+      min-height: 60px;
+      width: 100%;
+      padding: 1em 1.1em;
+      color: var(--text);
+      box-shadow: 0 2px 12px var(--primary)20;
+      font-family: 'Roboto', sans-serif;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      text-align: center;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.5;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 1.1em;
+        padding: 1em 1em;
+      }
+      nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1em;
+      }
+      main {
+        margin: 1.2em 0;
+        padding: 0 0.5em;
+      }
+      .card {
+        padding: 1.3em 1em 1.3em 1em;
+        max-width: 100%;
+      }
+    }
+    
+    /* Floating Decorative Elements */
+    .grid-float {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      left: 0; top: 0; right: 0; bottom: 0;
+    }
+    
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0.13;
+      animation: float 10s ease-in-out infinite alternate;
+      filter: blur(5px);
+      transition: all 0.8s ease;
+    }
+    
+    .circle1 {width: 180px; height: 180px; top: 10%; left: 3%; }
+    .circle2 {width: 110px; height: 110px; bottom: 12%; right: 6%; animation-duration: 16s;}
+    .circle3 {width: 240px; height: 240px; top: 37%; left: -60px; animation-duration: 24s;}
+    
+    @keyframes float {
+      0% { transform: translateY(0) scale(1) rotate(0deg);}
+      50% {transform: translateY(-55px) scale(0.98) rotate(180deg);}
+      100%{ transform: translateY(-12px) scale(1) rotate(360deg);}
+    }
+  </style>
+</head>
+<body class="tsundere">
+  <div class="particle-container" id="particleContainer"></div>
+  
+  <div class="grid-float">
+    <div class="circle circle1"></div>
+    <div class="circle circle2"></div>
+    <div class="circle circle3"></div>
+  </div>
+  
+  <header>
+    <div class="logo">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      Sentencify
+    </div>
+    <nav>
+      <button class="style-btn active" data-style="tsundere">Tsundere</button>
+      <button class="style-btn" data-style="kuudere">Kuudere</button>
+      <button class="style-btn" data-style="yandere">Yandere</button>
+    </nav>
+  </header>
+  
+  <main>
+    <div class="card">
+      <h2>Turn Any Sentence Into Anime Style!</h2>
+      
+      <div class="status-indicator status-loading" id="statusIndicator">
+        <i class="fas fa-spinner fa-spin"></i> Initializing AI...
+      </div>
+      
+      <div class="intensity-control">
+        <div class="intensity-label">Personality Intensity</div>
+        <div class="slider-container">
+          <input type="range" min="1" max="3" value="2" class="intensity-slider" id="intensitySlider">
+          <div class="intensity-labels">
+            <span>Subtle</span>
+            <span>Moderate</span>
+            <span>Maximum</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="input-container">
+        <textarea id="input" rows="4" placeholder="Type your sentence..."></textarea>
+      </div>
+      
+      <div class="actions">
+        <button class="btn-convert">
+          <div class="loading-spinner" id="loadingSpinner"></div>
+          <i class="fa-solid fa-magic-wand-sparkles"></i> Transform
+        </button>
+      </div>
+      
+      <div class="output-section">
+        <div class="output-label">Your Styled Sentence:</div>
+        <div id="output" class="output"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- PuterJS - Using event-driven approach -->
+  <script src="https://js.puter.com/v2/" async onload="initializePuter()" onerror="handlePuterError()"></script>
+  
+  <script>
+    // Global variables
+    const body = document.body;
+    const btns = document.querySelectorAll('.style-btn');
+    const particleContainer = document.getElementById('particleContainer');
+    let currentStyle = 'tsundere';
+    let currentIntensity = 2;
+    let particleInterval = null;
+    let isAuthenticated = false;
+    let useAI = false;
+    let puterReady = false;
+    
+    const statusIndicator = document.getElementById('statusIndicator');
+    
+    function updateStatus(status, message) {
+      if (!statusIndicator) return;
+      
+      statusIndicator.className = `status-indicator status-${status}`;
+      const icons = {
+        ai: '<i class="fas fa-robot"></i>',
+        local: '<i class="fas fa-cog"></i>',
+        loading: '<i class="fas fa-spinner fa-spin"></i>'
+      };
+      
+      const messages = {
+        ai: message || 'AI-Powered Transformations Ready',
+        local: message || 'Enhanced Local Mode Active',
+        loading: message || 'Initializing AI...'
+      };
+      
+      statusIndicator.innerHTML = icons[status] + ' ' + messages[status];
+    }
+    
+    // PuterJS Initialization Handler (called when script loads)
+    function initializePuter() {
+      console.log('🤖 PuterJS script loaded, checking for API...');
+      
+      // Wait for puter object to be available with proper delay
+      let checkCount = 0;
+      const maxChecks = 20; // 20 seconds total
+      
+      const puterCheck = setInterval(() => {
+        checkCount++;
+        console.log(`🔍 Checking PuterJS availability... (${checkCount}/${maxChecks})`);
+        
+        if (typeof window.puter !== 'undefined' && window.puter && window.puter.ai && window.puter.ai.chat) {
+          clearInterval(puterCheck);
+          console.log('✅ PuterJS AI API is ready!');
+          
+          puterReady = true;
+          useAI = true;
+          updateStatus('ai', 'AI System Ready');
+          
+          // Set up authentication handler
+          if (window.puter.onAuth) {
+            window.puter.onAuth = function(user) {
+              console.log('✅ User authenticated:', user?.username || 'User');
+              isAuthenticated = true;
+              updateStatus('ai', 'AI Ready & Authenticated');
+            };
+          }
+          
+          // Test AI connection immediately
+          testAIConnection();
+          
+        } else if (checkCount >= maxChecks) {
+          clearInterval(puterCheck);
+          console.warn('⚠️ PuterJS AI not available after 20 seconds, switching to local mode');
+          handlePuterError();
+        }
+      }, 1000); // Check every 1 second
+    }
+    
+    // PuterJS Error Handler
+    function handlePuterError() {
+      console.log('📝 Switching to enhanced local mode');
+      useAI = false;
+      puterReady = false;
+      updateStatus('local', 'Local Mode Active');
+    }
+    
+    // Test AI connection
+    async function testAIConnection() {
+      try {
+        console.log('🧪 Testing AI connection...');
+        const testResponse = await window.puter.ai.chat('Test');
+        console.log('✅ AI test successful!');
+        updateStatus('ai', 'AI Connection Verified');
+      } catch (error) {
+        console.log('🔧 AI requires authentication');
+        updateStatus('ai', 'AI Ready (Authentication Required)');
+      }
+    }
+    
+    // AI Prompts - DETAILED for better results
+    const promptTemplates = {
+      tsundere: {
+        1: "Transform this sentence to subtle tsundere anime style. Add mild embarrassment, slight denial (like 'not that I care'), and cute emoticons like >.<. Keep it gentle and not too over the top. Sentence: ",
+        2: "Rewrite this in moderate tsundere style. Include stuttering (I-It's not like...), embarrassed denials, blushing expressions, and emoticons like >///<, >.<. Make it clearly tsundere but not extreme. Sentence: ",
+        3: "Convert to maximum tsundere style! Include intense stuttering (B-BAKA!), strong embarrassed denials, lots of blushing expressions, and emoticons like >////<, >.<, >_<. Go full tsundere mode with 'Don't get the wrong idea!' type phrases. Sentence: "
+      },
+      kuudere: {
+        1: "Transform to subtle kuudere anime style. Make it calm and slightly emotionless, add trailing dots (...), and a dismissive tone. Keep it mild. Sentence: ",
+        2: "Rewrite in moderate kuudere personality. Make it cold, analytical, dismissive, with emoticons like -_-, ._., and lots of trailing ellipses. Show emotional distance. Sentence: ",
+        3: "Convert to maximum kuudere style! Make it completely emotionless, very analytical and cold, dismissive attitude, minimal emoticons (._., -.-), lots of pauses (...), and phrases showing emotional detachment. Sentence: "
+      },
+      yandere: {
+        1: "Transform to subtle yandere anime style. Add gentle obsessiveness, sweet but slightly possessive tone, and heart symbols (♡, ❤). Keep it mild and cute. Sentence: ",
+        2: "Rewrite in moderate yandere personality. Include creepy sweetness, possessiveness, 'ehehe' or 'ufufu' laughs, hearts (♡, ❤), and slightly obsessive undertones. Sentence: ",
+        3: "Convert to maximum yandere style! Make it extremely possessive and obsessive, include threatening but sweet undertones, creepy laughs (ehehe, ufufu, ahaha), lots of hearts (♡, ❤, 💕), and phrases about 'being together forever' or 'just us'. Sentence: "
+      }
+    };
+    
+    // Local fallback transformations
+    const localTransformers = {
+      tsundere: {
+        1: s => s + " ...not that I care or anything. >.<",
+        2: s => "I-It's not like I wanted to say this... " + s.replace(/(\.|!|\?)$/, " >//< $&") + " B-baka!",
+        3: s => "B-BAKA! " + s.replace(/(\.|!|\?)$/, " >///< $&") + " I-It's not like I wanted to say that or anything! Don't get the wrong idea! >/////<"
+      },
+      kuudere: {
+        1: s => s.replace(/(\.|!|\?)$/, "... $&") + " Nothing more.",
+        2: s => "Hmm... " + s.replace(/(\.|!|\?)$/, "... $&") + " It's just a fact, nothing special. -.-",
+        3: s => "..." + s.replace(/(\.|!|\?)$/, "... $&") + " It's merely logical. Don't expect me to repeat myself... -_- Whatever."
+      },
+      yandere: {
+        1: s => s.replace(/(\.|!|\?)$/, " ♡$&") + " Ehehe~",
+        2: s => "Ehehe... " + s.replace(/(\.|!|\?)$/, " ❤$&") + " We'll be together, won't we? ♡",
+        3: s => "Ahaha... ♡ " + s.replace(/(\.|!|\?)$/, " ❤$&") + " We'll be together forever... just us... ♡ No one else matters~ Ehehe... ❤"
+      }
+    };
+    
+    // Intensity slider
+    const intensitySlider = document.getElementById('intensitySlider');
+    if (intensitySlider) {
+      intensitySlider.addEventListener('input', (e) => {
+        currentIntensity = parseInt(e.target.value) || 2;
+      });
+    }
+    
+    // Particle functions
+    function createCherryBlossoms() {
+      const petal = document.createElement('div');
+      petal.className = 'particle cherry-blossom';
+      petal.style.left = Math.random() * 100 + 'vw';
+      petal.style.animationDelay = Math.random() * 2 + 's';
+      petal.style.animationDuration = (Math.random() * 3 + 8) + 's';
+      if (particleContainer) {
+        particleContainer.appendChild(petal);
+        setTimeout(() => petal?.remove?.(), 12000);
+      }
+    }
+    
+    function createSnowflakes() {
+      const flake = document.createElement('div');
+      flake.className = 'particle snowflake';
+      flake.style.left = Math.random() * 100 + 'vw';
+      flake.style.animationDelay = Math.random() * 2 + 's';
+      flake.style.animationDuration = (Math.random() * 2 + 6) + 's';
+      if (particleContainer) {
+        particleContainer.appendChild(flake);
+        setTimeout(() => flake?.remove?.(), 10000);
+      }
+    }
+    
+    function createRosePetals() {
+      const petal = document.createElement('div');
+      petal.className = 'particle rose-petal';
+      petal.style.left = Math.random() * 100 + 'vw';
+      petal.style.animationDelay = Math.random() * 2 + 's';
+      petal.style.animationDuration = (Math.random() * 4 + 10) + 's';
+      if (particleContainer) {
+        particleContainer.appendChild(petal);
+        setTimeout(() => petal?.remove?.(), 15000);
+      }
+    }
+    
+    function startParticles(style) {
+      if (particleInterval) clearInterval(particleInterval);
+      if (particleContainer) particleContainer.innerHTML = '';
+      
+      const particleFunctions = {
+        tsundere: createCherryBlossoms,
+        kuudere: createSnowflakes,
+        yandere: createRosePetals
+      };
+      
+      const intervals = { tsundere: 800, kuudere: 600, yandere: 1200 };
+      
+      if (particleFunctions[style]) {
+        particleInterval = setInterval(particleFunctions[style], intervals[style]);
+      }
+    }
+    
+    function typeWriter(element, text, speed = 50) {
+      if (!element || !text) return;
+      element.textContent = '';
+      let i = 0;
+      
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, speed + Math.random() * 30);
+        }
+      }
+      type();
+    }
+    
+    // Theme switching
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        currentStyle = btn.dataset.style;
+        body.className = currentStyle;
+        startParticles(currentStyle);
+      });
+    });
+    
+    // MAIN TRANSFORM FUNCTION
+    const convertBtn = document.querySelector('.btn-convert');
+    convertBtn?.addEventListener('click', async () => {
+      const inp = document.getElementById('input');
+      const outputElement = document.getElementById('output');
+      const spinner = document.getElementById('loadingSpinner');
+      
+      const inputText = inp?.value?.trim();
+      if (!inputText) {
+        const errorMessages = {
+          tsundere: "B-BAKA! You need to enter a sentence first! >///< I-It's not like I can read your mind!",
+          kuudere: "...You haven't entered anything. How inefficient. -.-",
+          yandere: "Ehehe... ♡ Please enter a sentence for me... I'm waiting~ ❤"
+        };
+        if (outputElement) outputElement.textContent = errorMessages[currentStyle];
+        return;
+      }
+      
+      // Show loading
+      convertBtn.classList.add('loading');
+      if (spinner) spinner.style.display = 'inline-block';
+      
+      let transformedText = '';
+      let usedAI = false;
+      
+      // Try AI if available
+      if (useAI && puterReady && window.puter?.ai?.chat) {
+        try {
+          if (outputElement) outputElement.textContent = 'AI processing...';
+          console.log('🤖 Sending to AI...');
+          
+          const promptTemplate = promptTemplates[currentStyle]?.[currentIntensity] || '';
+          const fullPrompt = promptTemplate + `"${inputText}"`;
+          
+          console.log('🤖 Prompt:', fullPrompt);
+          
+          const aiResponse = await Promise.race([
+            window.puter.ai.chat(fullPrompt),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('AI timeout')), 30000))
+          ]);
+          
+          if (aiResponse?.trim?.()) {
+            transformedText = aiResponse.trim();
+            usedAI = true;
+            console.log('✅ AI Success!');
+            updateStatus('ai', 'AI Transformation Complete');
+          } else {
+            throw new Error('Empty AI response');
+          }
+          
+        } catch (error) {
+          console.warn('🤖 AI Error:', error.message);
+          
+          if (error.message.includes('auth') || error.message.includes('401')) {
+            if (outputElement) outputElement.textContent = 'Please authenticate in the popup...';
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            try {
+              const retryResponse = await window.puter.ai.chat(fullPrompt);
+              if (retryResponse?.trim?.()) {
+                transformedText = retryResponse.trim();
+                usedAI = true;
+                isAuthenticated = true;
+                updateStatus('ai', 'Authenticated & Ready');
+              } else {
+                throw new Error('Retry failed');
+              }
+            } catch (retryError) {
+              usedAI = false;
+            }
+          } else {
+            usedAI = false;
+          }
+        }
+      }
+      
+      // Fallback to local
+      if (!usedAI) {
+        console.log('📝 Using local transformation');
+        const transformer = localTransformers[currentStyle]?.[currentIntensity];
+        transformedText = transformer ? transformer(inputText) : inputText + " ✨";
+        updateStatus('local', 'Local Transformation Used');
+      }
+      
+      // Show result
+      convertBtn.classList.remove('loading');
+      if (spinner) spinner.style.display = 'none';
+      
+      const typingSpeeds = { kuudere: 70, tsundere: 35, yandere: 55 };
+      const speed = typingSpeeds[currentStyle] || 50;
+      
+      if (outputElement) typeWriter(outputElement, transformedText, speed);
+      
+      // Visual feedback
+      const successColor = usedAI ? '#4caf50' : '#ff9800';
+      convertBtn.style.background = `linear-gradient(45deg, ${successColor}, ${successColor}aa)`;
+      setTimeout(() => convertBtn.style.background = '', 1500);
+    });
+    
+    // Keyboard shortcut
+    document.getElementById('input')?.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
+        convertBtn?.click();
+        ev.preventDefault();
+      }
+    });
+    
+    // Initialize
+    startParticles('tsundere');
+    updateStatus('loading', 'Loading PuterJS...');
+  </script>
+</body>
+</html>
