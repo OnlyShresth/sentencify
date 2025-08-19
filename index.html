@@ -877,23 +877,33 @@
     }
     
     // Enhanced AI prompts
-    const aiPrompts = {
-      tsundere: {
-        1: `Rewrite EXACTLY this sentence but add subtle tsundere elements. Keep the SAME MEANING but add mild embarrassment and one emoticon like >.<. DO NOT change the topic or create a new response. Transform the sentence: `,
-        2: `Rewrite this EXACT sentence with moderate tsundere style. Keep the SAME MEANING but add stuttering like "I-It's not like..." and embarrassed emoticons like >///<. DO NOT change what the sentence is about. Transform: `,
-        3: `Rewrite this EXACT sentence with maximum tsundere intensity. Keep the SAME CORE MEANING but add lots of stuttering, "B-BAKA!", strong denials, and emoticons like >////<. DO NOT create new content. Transform: `
-      },
-      kuudere: {
-        1: `Rewrite EXACTLY this sentence in subtle kuudere style. Keep the SAME MEANING but make it more emotionally distant with trailing dots (...). DO NOT change the topic. Transform: `,
-        2: `Rewrite this EXACT sentence with moderate kuudere personality. Keep the SAME MEANING but make it cold, analytical, add emoticons like -_- and trailing ellipses (...). DO NOT create new content. Transform: `,
-        3: `Rewrite this EXACT sentence with maximum kuudere intensity. Keep the SAME CORE MEANING but make it completely emotionless, analytical, dismissive with minimal emoticons (._., -.-) and lots of pauses (...). Transform: `
-      },
-      yandere: {
-        1: `Rewrite EXACTLY this sentence with subtle yandere style. Keep the SAME MEANING but add gentle possessiveness and heart symbols (♡). DO NOT change the topic or create new scenarios. Transform: `,
-        2: `Rewrite this EXACT sentence with moderate yandere personality. Keep the SAME MEANING but add possessiveness, "ehehe" laughs, and hearts (♡, ❤). DO NOT change what the sentence is about. Transform: `,
-        3: `Rewrite this EXACT sentence with maximum yandere intensity. Keep the SAME CORE MEANING but add extreme possessiveness, creepy laughs (ehehe, ufufu), lots of hearts (♡, ❤, 💕), and subtle threatening undertones. Transform: `
-      }
-    };
+    // 🚀 ENHANCED AI PROMPTS with Rich Emoticon Variety
+const aiPrompts = {
+  tsundere: {
+    1: `Rewrite this sentence with subtle Tsundere style. Keep the EXACT same meaning and topic. Add light stuttering, soft denials, and use emoticons like: >.<, (*/ω＼), (˘▾˘)~, (⁄ ⁄•⁄ω⁄•⁄ ⁄), or >///<. Add phrases like "not that I care" or "whatever". Transform: `,
+    
+    2: `Rewrite this sentence with moderate Tsundere style. Keep the EXACT same meaning and topic. Add frequent stuttering (I-It's not...), cute anger (b-baka!), denial phrases, and use emoticons like: >///<, (✖╭╮✖), (\\/\\/\\/), (〃∇〃), (´∀｀)♡, or (⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄). Transform: `,
+    
+    3: `Rewrite this sentence with maximum Tsundere style. Keep the EXACT same meaning and topic. Add heavy stuttering, intense denials (B-BAKA!), tsundere catchphrases, and use emoticons like: >////<, (〒︿〒), (ﾟДﾟ), (/∇＼), (´∀｀;), (⁄ ⁄•⁄ ⁄•⁄ ⁄)⁄, ヽ(°〇°)ﾉ, or (≧∇≦). Add lots of flustered sounds like "kyaa!" or "uuu~". Transform: `
+  },
+  
+  kuudere: {
+    1: `Rewrite this sentence with subtle Kuudere style. Keep the EXACT same meaning and topic. Make it calm, collected, with minimal emotion, and use emoticons like: -_-, (¬‿¬), (－_－), (・_・), or (...). Add phrases showing cool detachment. Transform: `,
+    
+    2: `Rewrite this sentence with moderate Kuudere style. Keep the EXACT same meaning and topic. Make it emotionless, logical, slightly sarcastic, and use emoticons like: (¬_¬), (-_-"), (︶︿︶), (¬､¬), (•_•), or ಠ_ಠ. Add analytical phrases and ellipses (...). Transform: `,
+    
+    3: `Rewrite this sentence with maximum Kuudere style. Keep the EXACT same meaning and topic. Make it absolutely emotionless, robotic, analytical, and use minimal emoticons like: -_-, (⌐■_■), (￣_￣), (︶︹︺), or (━_━). Add lots of pauses (...), dismissive phrases like "how troublesome" or "predictable". Transform: `
+  },
+  
+  yandere: {
+    1: `Rewrite this sentence with subtle Yandere style. Keep the EXACT same meaning and topic. Add sweet tone, gentle possessiveness, soft laughs, and use emoticons like: ♡, (≧◡≦), (´∀｀)♡, (◕‿◕), ♪(´▽｀), or (￣▽￣). Add phrases like "ehehe~" and loving expressions. Transform: `,
+    
+    2: `Rewrite this sentence with moderate Yandere style. Keep the EXACT same meaning and topic. Add possessiveness, obsessive undertones, playful laughs, and use emoticons like: ❤, (◕‿◕), (｡◕‿◕｡), ♡(˃͈ દ ˂͈ ༶ ), (´∀｀)♡, or ヽ(♡‿♡)ノ. Add laughs like "ehehe~" or "uhuhu~" and tender threats. Transform: `,
+    
+    3: `Rewrite this sentence with maximum Yandere style. Keep the EXACT same meaning and topic. Add intense obsession, loving but threatening tone, creepy laughs, and use emoticons like: ♡, ❤, 💕, (◉‿◉), (◕‿◕)♡, ヾ(｡◕‿◕｡)ﾉ, or (ಠ‿ಠ). Add creepy laughs like "ehehe~", "ufufu~", "ahaha~" and subtle violent hints with loving tone. Transform: `
+  }
+};
+
     
     const localTransformers = {
       tsundere: {
@@ -1106,3 +1116,4 @@
   </script>
 </body>
 </html>
+
