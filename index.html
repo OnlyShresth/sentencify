@@ -692,31 +692,26 @@
     const outputElement = document.getElementById('output');
     const spinner = document.getElementById('loadingSpinner');
     
-    // FIXED: Correct PuterJS response parsing based on console output
     function extractResponseText(response) {
       console.log('Raw AI response type:', typeof response);
       console.log('Raw AI response:', response);
       
       try {
-        // Handle direct string response
         if (typeof response === 'string') {
           const text = response.trim();
           console.log('✅ Extracted string response:', text);
           return text;
         }
         
-        // Handle object response - PuterJS format has message.content directly
         if (response && typeof response === 'object') {
           console.log('Response keys:', Object.keys(response));
           
-          // FIXED: PuterJS response format is response.message.content
           if (response.message && typeof response.message.content === 'string') {
             const content = response.message.content.trim();
             console.log('✅ Extracted from message.content:', content);
             return content;
           }
           
-          // Fallback for other possible structures
           const fallbackProps = ['text', 'content', 'output', 'result'];
           for (const prop of fallbackProps) {
             if (response[prop] && typeof response[prop] === 'string') {
@@ -849,21 +844,22 @@
       });
     }
     
+    // 🚀 ENHANCED AI PROMPTS - Much more specific and accurate!
     const aiPrompts = {
       tsundere: {
-        1: "Transform this to subtle tsundere anime style with mild embarrassment and >.<: ",
-        2: "Rewrite in tsundere style with stuttering (I-It's not like...) and >///<: ",
-        3: "Make this maximum tsundere with B-BAKA!, strong denials, and >////<: "
+        1: `Rewrite EXACTLY this sentence but add subtle tsundere elements. Keep the SAME MEANING but add mild embarrassment and one emoticon like >.<. DO NOT change the topic or create a new response. Transform the sentence: `,
+        2: `Rewrite this EXACT sentence with moderate tsundere style. Keep the SAME MEANING but add stuttering like "I-It's not like..." and embarrassed emoticons like >///<. DO NOT change what the sentence is about. Transform: `,
+        3: `Rewrite this EXACT sentence with maximum tsundere intensity. Keep the SAME CORE MEANING but add lots of stuttering, "B-BAKA!", strong denials, and emoticons like >////<. DO NOT create new content. Transform: `
       },
       kuudere: {
-        1: "Transform to subtle kuudere with calm tone and ...: ",
-        2: "Rewrite in kuudere style cold and analytical with -_-: ",
-        3: "Make maximum kuudere emotionless and dismissive with lots of ...: "
+        1: `Rewrite EXACTLY this sentence in subtle kuudere style. Keep the SAME MEANING but make it more emotionally distant with trailing dots (...). DO NOT change the topic. Transform: `,
+        2: `Rewrite this EXACT sentence with moderate kuudere personality. Keep the SAME MEANING but make it cold, analytical, add emoticons like -_- and trailing ellipses (...). DO NOT create new content. Transform: `,
+        3: `Rewrite this EXACT sentence with maximum kuudere intensity. Keep the SAME CORE MEANING but make it completely emotionless, analytical, dismissive with minimal emoticons (._., -.-) and lots of pauses (...). Transform: `
       },
       yandere: {
-        1: "Transform to subtle yandere with sweet tone and ♡: ",
-        2: "Rewrite in yandere style possessive with ehehe and ❤: ",
-        3: "Make maximum yandere obsessive with creepy laughs and lots of ♡❤: "
+        1: `Rewrite EXACTLY this sentence with subtle yandere style. Keep the SAME MEANING but add gentle possessiveness and heart symbols (♡). DO NOT change the topic or create new scenarios. Transform: `,
+        2: `Rewrite this EXACT sentence with moderate yandere personality. Keep the SAME MEANING but add possessiveness, "ehehe" laughs, and hearts (♡, ❤). DO NOT change what the sentence is about. Transform: `,
+        3: `Rewrite this EXACT sentence with maximum yandere intensity. Keep the SAME CORE MEANING but add extreme possessiveness, creepy laughs (ehehe, ufufu), lots of hearts (♡, ❤, 💕), and subtle threatening undertones. Transform: `
       }
     };
     
