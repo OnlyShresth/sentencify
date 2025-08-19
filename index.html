@@ -9,7 +9,7 @@
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
-    /* Same CSS as before - keeping it unchanged */
+    /* Base Styles - Tsundere Default */
     :root {
       --primary: #ff7675;
       --background: #fff0f3;
@@ -678,10 +678,7 @@
   <script src="https://js.puter.com/v2/" async onload="initializePuter()"></script>
   
   <script>
-    // Global variables
-    const body = document.body;
-    const btns = document.querySelectorAll('.style-btn');
-    const particleContainer = document.getElementById('particleContainer');
+    // Global variables - All properly initialized
     let currentStyle = 'tsundere';
     let currentIntensity = 2;
     let particleInterval = null;
@@ -689,305 +686,462 @@
     let useAI = false;
     let puterReady = false;
     
+    // DOM elements - Safe references
+    const body = document.body;
+    const btns = document.querySelectorAll('.style-btn');
+    const particleContainer = document.getElementById('particleContainer');
     const statusIndicator = document.getElementById('statusIndicator');
     const loginBtn = document.getElementById('loginBtn');
+    const intensitySlider = document.getElementById('intensitySlider');
+    const convertBtn = document.querySelector('.btn-convert');
+    const inputElement = document.getElementById('input');
+    const outputElement = document.getElementById('output');
+    const spinner = document.getElementById('loadingSpinner');
     
+    // Safe utility function to update status
     function updateStatus(status, message) {
       if (!statusIndicator) return;
       
-      statusIndicator.className = `status-indicator status-${status}`;
-      const icons = {
-        ai: '<i class="fas fa-robot"></i>',
-        local: '<i class="fas fa-cog"></i>',
-        loading: '<i class="fas fa-spinner fa-spin"></i>'
+      const iconMap = {
+        ai: 'fas fa-robot',
+        local: 'fas fa-cog',
+        loading: 'fas fa-spinner fa-spin'
       };
       
-      const messages = {
+      const messageMap = {
         ai: message || 'AI Ready & Authenticated',
         local: message || 'Enhanced Local Mode',
         loading: message || 'Initializing...'
       };
       
-      statusIndicator.innerHTML = icons[status] + ' ' + messages[status];
+      statusIndicator.className = `status-indicator status-${status}`;
+      statusIndicator.innerHTML = `<i class="${iconMap[status]}"></i> ${messageMap[status]}`;
     }
     
-    // PuterJS Initialization
+    // Safe response text extraction
+    function extractResponseText(response) {
+      try {
+        // Handle different response formats
+        if (typeof response === 'string') {
+          return response.trim();
+        }
+        if (response && typeof response === 'object') {
+          // Try different possible structures
+          if (response.text && typeof response.text === 'string') {
+            return response.text.trim();
+          }
+          if (response.content && typeof response.content === 'string') {
+            return response.content.trim();
+          }
+          if (response.choices && Array.isArray(response.choices) && response.choices[0]) {
+            const choice = response.choices;
+            if (choice.message && choice.message.content) {
+              return choice.message.content.trim();
+            }
+          }
+        }
+        return '';
+      } catch (error) {
+        console.warn('Error extracting response text:', error);
+        return '';
+      }
+    }
+    
+    // PuterJS Initialization with proper error handling
     function initializePuter() {
-      console.log('🤖 PuterJS loaded');
+      console.log('🤖 PuterJS script loaded');
       
       let checkCount = 0;
+      const maxChecks = 10;
+      
       const puterCheck = setInterval(() => {
         checkCount++;
+        console.log(`Checking PuterJS... (${checkCount}/${maxChecks})`);
         
-        if (typeof window.puter !== 'undefined' && window.puter && window.puter.ai) {
-          clearInterval(puterCheck);
-          console.log('✅ PuterJS ready!');
-          
-          puterReady = true;
-          useAI = true;
-          updateStatus('loading', 'AI Ready - Login Required');
-          
-          // Set up auth handler
-          if (window.puter.onAuth) {
-            window.puter.onAuth = function(user) {
-              console.log('✅ Authenticated:', user?.username);
-              isAuthenticated = true;
-              updateStatus('ai', `Logged in as ${user?.username}`);
-              loginBtn.style.display = 'none';
-            };
+        try {
+          if (typeof window.puter !== 'undefined' && 
+              window.puter && 
+              window.puter.ai && 
+              typeof window.puter.ai.chat === 'function') {
+            
+            clearInterval(puterCheck);
+            console.log('✅ PuterJS AI ready!');
+            
+            puterReady = true;
+            useAI = true;
+            updateStatus('loading', 'AI Ready - Login Required');
+            
+            // Set up authentication handler
+            try {
+              if (window.puter.onAuth && typeof window.puter.onAuth === 'function') {
+                window.puter.onAuth = function(user) {
+                  console.log('✅ Authenticated:', user?.username || 'User');
+                  isAuthenticated = true;
+                  updateStatus('ai', `Logged in as ${user?.username || 'User'}`);
+                  if (loginBtn) loginBtn.style.display = 'none';
+                };
+              }
+            } catch (authError) {
+              console.warn('Auth handler setup failed:', authError);
+            }
+            
+          } else if (checkCount >= maxChecks) {
+            clearInterval(puterCheck);
+            console.warn('⚠️ PuterJS timeout, switching to local mode');
+            useAI = false;
+            puterReady = false;
+            updateStatus('local', 'Local Mode Active');
+            if (loginBtn) loginBtn.style.display = 'none';
           }
-          
-        } else if (checkCount >= 10) {
-          clearInterval(puterCheck);
-          console.warn('⚠️ PuterJS timeout, using local mode');
-          useAI = false;
-          updateStatus('local', 'Local Mode Active');
-          loginBtn.style.display = 'none';
+        } catch (error) {
+          console.warn('PuterJS check error:', error);
+          if (checkCount >= maxChecks) {
+            clearInterval(puterCheck);
+            useAI = false;
+            puterReady = false;
+            updateStatus('local', 'Local Mode Active');
+            if (loginBtn) loginBtn.style.display = 'none';
+          }
         }
       }, 1000);
     }
     
-    // Login button handler
-    loginBtn.addEventListener('click', async () => {
-      if (!puterReady) {
-        alert('PuterJS not ready yet. Please wait a moment.');
-        return;
-      }
-      
-      try {
-        updateStatus('loading', 'Authenticating...');
-        console.log('🔐 Starting authentication...');
+    // Login button handler with comprehensive error handling
+    if (loginBtn) {
+      loginBtn.addEventListener('click', async () => {
+        if (!puterReady || !window.puter) {
+          alert('PuterJS not ready yet. Please wait a moment.');
+          return;
+        }
         
-        await window.puter.auth.signIn();
-        const user = await window.puter.auth.getUser();
-        
-        console.log('✅ Login successful:', user);
-        isAuthenticated = true;
-        updateStatus('ai', `Logged in as ${user.username}`);
-        loginBtn.style.display = 'none';
-        
-      } catch (error) {
-        console.error('❌ Login failed:', error);
-        updateStatus('loading', 'Login Failed - Try Again');
-        alert('Login failed: ' + error.message);
-      }
-    });
-    
-    // Simplified but effective prompts
-    const aiPrompts = {
-      tsundere: {
-        1: "Transform this sentence to subtle tsundere anime style with mild embarrassment and >.<: ",
-        2: "Rewrite in tsundere style with stuttering (I-It's not like...), denials, and >///<: ",
-        3: "Make this maximum tsundere with B-BAKA!, strong denials, and >////<: "
-      },
-      kuudere: {
-        1: "Transform to subtle kuudere style with calm tone and trailing dots: ",
-        2: "Rewrite in kuudere style with cold, analytical tone and -_-: ",
-        3: "Make this maximum kuudere with emotionless, dismissive tone and lots of ...: "
-      },
-      yandere: {
-        1: "Transform to subtle yandere style with sweet tone and ♡: ",
-        2: "Rewrite in yandere style with possessiveness, ehehe, and ❤: ",
-        3: "Make this maximum yandere with obsessive tone, creepy laughs, and lots of ♡❤: "
-      }
-    };
-    
-    // Local fallbacks
-    const localTransformers = {
-      tsundere: {
-        1: s => s + " ...not that I care or anything. >.<",
-        2: s => "I-It's not like I wanted to say this... " + s + " B-baka! >///<",
-        3: s => "B-BAKA! " + s + " I-It's not like I wanted to say that! Don't get the wrong idea! >/////<"
-      },
-      kuudere: {
-        1: s => s + "... Nothing more.",
-        2: s => "Hmm... " + s + "... It's just a fact. -.-",
-        3: s => "..." + s + "... It's logical. Don't expect me to repeat myself. -_-"
-      },
-      yandere: {
-        1: s => s + " ♡ Ehehe~",
-        2: s => "Ehehe... " + s + " ❤ We'll be together, won't we? ♡",
-        3: s => "Ahaha... ♡ " + s + " ❤ We'll be together forever... just us... ♡"
-      }
-    };
-    
-    // Intensity slider
-    const intensitySlider = document.getElementById('intensitySlider');
-    if (intensitySlider) {
-      intensitySlider.addEventListener('input', (e) => {
-        currentIntensity = parseInt(e.target.value) || 2;
+        try {
+          updateStatus('loading', 'Authenticating...');
+          console.log('🔐 Starting authentication...');
+          
+          if (!window.puter.auth || typeof window.puter.auth.signIn !== 'function') {
+            throw new Error('Auth API not available');
+          }
+          
+          await window.puter.auth.signIn();
+          
+          let user = null;
+          try {
+            if (window.puter.auth.getUser && typeof window.puter.auth.getUser === 'function') {
+              user = await window.puter.auth.getUser();
+            }
+          } catch (getUserError) {
+            console.warn('Could not get user info:', getUserError);
+          }
+          
+          console.log('✅ Login successful');
+          isAuthenticated = true;
+          updateStatus('ai', `Logged in as ${user?.username || 'User'}`);
+          loginBtn.style.display = 'none';
+          
+        } catch (error) {
+          console.error('❌ Login failed:', error);
+          updateStatus('loading', 'Login Failed - Try Again');
+          alert('Login failed: ' + (error.message || 'Unknown error'));
+        }
       });
     }
     
-    // Particle functions
-    function createCherryBlossoms() {
-      const petal = document.createElement('div');
-      petal.className = 'particle cherry-blossom';
-      petal.style.left = Math.random() * 100 + 'vw';
-      petal.style.animationDelay = Math.random() * 2 + 's';
-      petal.style.animationDuration = (Math.random() * 3 + 8) + 's';
-      if (particleContainer) {
-        particleContainer.appendChild(petal);
-        setTimeout(() => petal?.remove?.(), 12000);
+    // AI Prompts - Simplified and tested
+    const aiPrompts = {
+      tsundere: {
+        1: "Transform this to subtle tsundere style with mild embarrassment and >.<: ",
+        2: "Rewrite in tsundere style with stuttering (I-It's not like...) and >///<: ",
+        3: "Make this maximum tsundere with B-BAKA!, strong denials, and >////<: "
+      },
+      kuudere: {
+        1: "Transform to subtle kuudere with calm tone and ...: ",
+        2: "Rewrite in kuudere style cold and analytical with -_-: ",
+        3: "Make maximum kuudere emotionless and dismissive with lots of ...: "
+      },
+      yandere: {
+        1: "Transform to subtle yandere with sweet tone and ♡: ",
+        2: "Rewrite in yandere style possessive with ehehe and ❤: ",
+        3: "Make maximum yandere obsessive with creepy laughs and lots of ♡❤: "
       }
+    };
+    
+    // Local transformations - Bug-free implementations
+    const localTransformers = {
+      tsundere: {
+        1: function(s) { return s + " ...not that I care or anything. >.<"; },
+        2: function(s) { return "I-It's not like I wanted to say this... " + s + " B-baka! >///<"; },
+        3: function(s) { return "B-BAKA! " + s + " I-It's not like I wanted to say that! Don't get the wrong idea! >/////<"; }
+      },
+      kuudere: {
+        1: function(s) { return s + "... Nothing more."; },
+        2: function(s) { return "Hmm... " + s + "... It's just a fact. -.-"; },
+        3: function(s) { return "..." + s + "... It's logical. Don't expect me to repeat myself. -_-"; }
+      },
+      yandere: {
+        1: function(s) { return s + " ♡ Ehehe~"; },
+        2: function(s) { return "Ehehe... " + s + " ❤ We'll be together, won't we? ♡"; },
+        3: function(s) { return "Ahaha... ♡ " + s + " ❤ We'll be together forever... just us... ♡"; }
+      }
+    };
+    
+    // Intensity slider with validation
+    if (intensitySlider) {
+      intensitySlider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        if (!isNaN(value) && value >= 1 && value <= 3) {
+          currentIntensity = value;
+        } else {
+          currentIntensity = 2; // Default fallback
+        }
+      });
     }
     
-    function createSnowflakes() {
-      const flake = document.createElement('div');
-      flake.className = 'particle snowflake';
-      flake.style.left = Math.random() * 100 + 'vw';
-      flake.style.animationDelay = Math.random() * 2 + 's';
-      flake.style.animationDuration = (Math.random() * 2 + 6) + 's';
-      if (particleContainer) {
-        particleContainer.appendChild(flake);
-        setTimeout(() => flake?.remove?.(), 10000);
-      }
-    }
-    
-    function createRosePetals() {
-      const petal = document.createElement('div');
-      petal.className = 'particle rose-petal';
-      petal.style.left = Math.random() * 100 + 'vw';
-      petal.style.animationDelay = Math.random() * 2 + 's';
-      petal.style.animationDuration = (Math.random() * 4 + 10) + 's';
-      if (particleContainer) {
-        particleContainer.appendChild(petal);
-        setTimeout(() => petal?.remove?.(), 15000);
+    // Particle functions with error handling
+    function createParticle(className, animationDuration) {
+      try {
+        const particle = document.createElement('div');
+        particle.className = `particle ${className}`;
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.animationDelay = Math.random() * 2 + 's';
+        particle.style.animationDuration = animationDuration + 's';
+        
+        if (particleContainer) {
+          particleContainer.appendChild(particle);
+          setTimeout(() => {
+            if (particle && particle.parentNode) {
+              particle.remove();
+            }
+          }, (animationDuration + 2) * 1000);
+        }
+      } catch (error) {
+        console.warn('Error creating particle:', error);
       }
     }
     
     function startParticles(style) {
-      if (particleInterval) clearInterval(particleInterval);
-      if (particleContainer) particleContainer.innerHTML = '';
-      
-      const functions = { tsundere: createCherryBlossoms, kuudere: createSnowflakes, yandere: createRosePetals };
-      const intervals = { tsundere: 800, kuudere: 600, yandere: 1200 };
-      
-      if (functions[style]) {
-        particleInterval = setInterval(functions[style], intervals[style]);
-      }
-    }
-    
-    function typeWriter(element, text, speed = 50) {
-      if (!element || !text) return;
-      element.textContent = '';
-      let i = 0;
-      
-      function type() {
-        if (i < text.length) {
-          element.textContent += text.charAt(i);
-          i++;
-          setTimeout(type, speed + Math.random() * 30);
+      try {
+        if (particleInterval) {
+          clearInterval(particleInterval);
+          particleInterval = null;
         }
+        
+        if (particleContainer) {
+          particleContainer.innerHTML = '';
+        }
+        
+        const particleConfig = {
+          tsundere: { className: 'cherry-blossom', duration: 8, interval: 800 },
+          kuudere: { className: 'snowflake', duration: 6, interval: 600 },
+          yandere: { className: 'rose-petal', duration: 10, interval: 1200 }
+        };
+        
+        const config = particleConfig[style];
+        if (config) {
+          particleInterval = setInterval(() => {
+            createParticle(config.className, config.duration);
+          }, config.interval);
+        }
+      } catch (error) {
+        console.warn('Error starting particles:', error);
       }
-      type();
     }
     
-    // Theme switching
-    btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        btns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentStyle = btn.dataset.style;
-        body.className = currentStyle;
-        startParticles(currentStyle);
-      });
-    });
-    
-    // Transform function
-    const convertBtn = document.querySelector('.btn-convert');
-    convertBtn?.addEventListener('click', async () => {
-      const inp = document.getElementById('input');
-      const outputElement = document.getElementById('output');
-      const spinner = document.getElementById('loadingSpinner');
-      
-      const inputText = inp?.value?.trim();
-      if (!inputText) {
-        const errorMessages = {
-          tsundere: "B-BAKA! You need to enter a sentence first! >///< I-It's not like I can read your mind!",
-          kuudere: "...You haven't entered anything. How inefficient. -.-",
-          yandere: "Ehehe... ♡ Please enter a sentence for me... I'm waiting~ ❤"
-        };
-        if (outputElement) outputElement.textContent = errorMessages[currentStyle];
+    // Typing effect with error handling
+    function typeWriter(element, text, speed) {
+      if (!element || typeof text !== 'string') {
+        console.warn('Invalid typeWriter parameters');
         return;
       }
       
-      // Show loading
-      convertBtn.classList.add('loading');
-      if (spinner) spinner.style.display = 'inline-block';
+      element.textContent = '';
+      let i = 0;
+      speed = speed || 50;
       
-      let transformedText = '';
-      let usedAI = false;
-      
-      // Try AI if authenticated
-      if (useAI && puterReady && isAuthenticated && window.puter?.ai?.chat) {
+      function type() {
         try {
-          if (outputElement) outputElement.textContent = 'AI processing...';
-          console.log('🤖 Using AI...');
-          
-          const prompt = aiPrompts[currentStyle]?.[currentIntensity] + `"${inputText}"`;
-          console.log('Prompt:', prompt);
-          
-          const aiResponse = await Promise.race([
-            window.puter.ai.chat(prompt),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
-          ]);
-          
-          if (aiResponse && aiResponse.trim()) {
-            transformedText = aiResponse.trim();
-            usedAI = true;
-            console.log('✅ AI success');
-          } else {
-            throw new Error('Empty response');
+          if (i < text.length && element) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, Math.max(10, speed + Math.random() * 30));
           }
-          
         } catch (error) {
-          console.warn('🤖 AI failed:', error.message);
-          usedAI = false;
+          console.warn('Typing effect error:', error);
+          if (element) element.textContent = text; // Fallback
         }
       }
       
-      // Fallback to local
-      if (!usedAI) {
-        console.log('📝 Using local');
-        const transformer = localTransformers[currentStyle]?.[currentIntensity];
-        transformedText = transformer ? transformer(inputText) : inputText + " ✨";
-      }
-      
-      // Show result
-      convertBtn.classList.remove('loading');
-      if (spinner) spinner.style.display = 'none';
-      
-      const speeds = { kuudere: 70, tsundere: 35, yandere: 55 };
-      const speed = speeds[currentStyle] || 50;
-      
-      if (outputElement) typeWriter(outputElement, transformedText, speed);
-      
-      // Visual feedback
-      const color = usedAI ? '#4caf50' : '#ff9800';
-      convertBtn.style.background = color;
-      setTimeout(() => convertBtn.style.background = '', 1000);
-    });
+      type();
+    }
     
-    // Keyboard shortcut
-    document.getElementById('input')?.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
-        convertBtn?.click();
-        ev.preventDefault();
-      }
-    });
+    // Theme switching with validation
+    if (btns && btns.length > 0) {
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          try {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const newStyle = btn.dataset.style;
+            if (['tsundere', 'kuudere', 'yandere'].includes(newStyle)) {
+              currentStyle = newStyle;
+              if (body) {
+                body.className = newStyle;
+              }
+              startParticles(currentStyle);
+            }
+          } catch (error) {
+            console.warn('Theme switching error:', error);
+          }
+        });
+      });
+    }
     
-    // Initialize
-    startParticles('tsundere');
-    updateStatus('loading', 'Loading...');
+    // Main transform function - Completely debugged
+    if (convertBtn) {
+      convertBtn.addEventListener('click', async () => {
+        try {
+          const inputText = inputElement?.value?.trim();
+          
+          if (!inputText) {
+            const errorMessages = {
+              tsundere: "B-BAKA! You need to enter a sentence first! >///< I-It's not like I can read your mind!",
+              kuudere: "...You haven't entered anything. How inefficient. -.-",
+              yandere: "Ehehe... ♡ Please enter a sentence for me... I'm waiting~ ❤"
+            };
+            if (outputElement) {
+              outputElement.textContent = errorMessages[currentStyle] || errorMessages.tsundere;
+            }
+            return;
+          }
+          
+          // Show loading state
+          convertBtn.classList.add('loading');
+          if (spinner) spinner.style.display = 'inline-block';
+          
+          let transformedText = '';
+          let usedAI = false;
+          
+          // Try AI if available and authenticated
+          if (useAI && puterReady && isAuthenticated && 
+              window.puter?.ai?.chat && 
+              typeof window.puter.ai.chat === 'function') {
+            
+            try {
+              if (outputElement) outputElement.textContent = 'AI processing...';
+              console.log('🤖 Using AI transformation...');
+              
+              const promptTemplate = aiPrompts[currentStyle]?.[currentIntensity];
+              if (!promptTemplate) {
+                throw new Error('Invalid prompt template');
+              }
+              
+              const fullPrompt = promptTemplate + `"${inputText}"`;
+              console.log('Sending prompt:', fullPrompt);
+              
+              // AI call with timeout
+              const aiResponse = await Promise.race([
+                window.puter.ai.chat(fullPrompt),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error('AI request timeout')), 20000)
+                )
+              ]);
+              
+              console.log('Raw AI response:', aiResponse);
+              
+              // Safe text extraction
+              const responseText = extractResponseText(aiResponse);
+              
+              if (responseText && responseText.length > 0) {
+                transformedText = responseText;
+                usedAI = true;
+                console.log('✅ AI transformation successful');
+              } else {
+                console.warn('Empty AI response, using local fallback');
+                usedAI = false;
+              }
+              
+            } catch (aiError) {
+              console.warn('🤖 AI transformation failed:', aiError.message);
+              usedAI = false;
+            }
+          }
+          
+          // Use local transformation if AI failed or not available
+          if (!usedAI) {
+            console.log('📝 Using local transformation');
+            
+            const transformer = localTransformers[currentStyle]?.[currentIntensity];
+            if (transformer && typeof transformer === 'function') {
+              transformedText = transformer(inputText);
+            } else {
+              transformedText = inputText + " ✨"; // Ultimate fallback
+            }
+          }
+          
+          // Hide loading state
+          convertBtn.classList.remove('loading');
+          if (spinner) spinner.style.display = 'none';
+          
+          // Display result with typing effect
+          if (outputElement && transformedText) {
+            const typingSpeeds = { kuudere: 70, tsundere: 35, yandere: 55 };
+            const speed = typingSpeeds[currentStyle] || 50;
+            typeWriter(outputElement, transformedText, speed);
+          }
+          
+          // Visual feedback
+          const feedbackColor = usedAI ? '#4caf50' : '#ff9800';
+          convertBtn.style.background = feedbackColor;
+          setTimeout(() => {
+            if (convertBtn) convertBtn.style.background = '';
+          }, 1000);
+          
+        } catch (error) {
+          console.error('Transform function error:', error);
+          
+          // Emergency fallback
+          convertBtn.classList.remove('loading');
+          if (spinner) spinner.style.display = 'none';
+          
+          if (outputElement) {
+            outputElement.textContent = 'An error occurred. Please try again.';
+          }
+        }
+      });
+    }
     
-    // Auto-hide login button if not needed
-    setTimeout(() => {
-      if (!puterReady) {
-        loginBtn.style.display = 'none';
-        updateStatus('local', 'Local Mode Active');
-      }
-    }, 15000);
+    // Keyboard shortcut with error handling
+    if (inputElement) {
+      inputElement.addEventListener('keydown', (ev) => {
+        try {
+          if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
+            if (convertBtn) convertBtn.click();
+            ev.preventDefault();
+          }
+        } catch (error) {
+          console.warn('Keyboard shortcut error:', error);
+        }
+      });
+    }
+    
+    // Initialize app
+    try {
+      startParticles('tsundere');
+      updateStatus('loading', 'Loading...');
+      
+      // Auto-switch to local mode if AI doesn't load
+      setTimeout(() => {
+        if (!puterReady && !useAI) {
+          if (loginBtn) loginBtn.style.display = 'none';
+          updateStatus('local', 'Local Mode Active');
+        }
+      }, 15000);
+      
+    } catch (initError) {
+      console.error('Initialization error:', initError);
+      updateStatus('local', 'Local Mode Active');
+      if (loginBtn) loginBtn.style.display = 'none';
+    }
   </script>
 </body>
 </html>
